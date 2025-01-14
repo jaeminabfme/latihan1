@@ -1,28 +1,52 @@
-$(document).ready(function(){
-    //1.Dasar Selektor
-    $('#header').css('text-align','center');//Mengubah align text pada header
-    $('li').css('margin','5px');//Memberi margin pada semua <li>
-
-    //2.Selektor Atribut
-    $('img[alt="Alumni Photo 1"]').css('border','2px solid red');//Mengubah border pada gambar dengan alt="Alumni photo 1"
-
-    //3.Selektor Hirarki
-    $('#alumniList li').css('font-size','18px');//Mengubah font size pada semua <li> di dalam #alumniList
-
-    //4.Selektor Filter
-    $('li.even').css('color','blue');//Mengubah warna teks pada elemn <li> genap
-    $('.featured').addClass('highlight');//Menambahkan class highlight pada elemen dengan class featured
-
-    //Event Handling untuk Galeri Foto
-    $('gallery img').on('click',function() {
-        var src = $(this).attr('src');
-        $('#modalImage').attr('src',src);
-        $('#myModal').fadeIn();
+$(document).ready(function() {
+    function loadAlumni() {
+        $.ajax({
+            url: 'alumni.php',
+            type: 'GET',
+            success: function(response) {
+                const data = JSON.parse(response);
+                $('#alumniTableBody').empty();
+                data.forEach((alumnus, index) => {
+                    $('#alumniTableBody').append(`
+                        <tr>
+                            <td>${alumnus.nim}</td>
+                            <td>${alumnus.name}</td>
+                            <td>${alumnus.major}</td>
+                            <td>${alumnus.year}</td>
+                            <td>
+                                <button class="btn btn-danger btn-sm deleteBtn" data-index="${index}">Hapus</button>
+                            </td>
+                        </tr>
+                    `);
+                });
+            }
+        });
+    }
+    $('#alumniForm').on('submit', function(event) {
+        event.preventDefault();
+        const formData = $(this).serialize();
+        $.ajax({
+            url: 'alumni.php',
+            type: 'POST',
+            data: formData,
+            success: function(response) {
+                alert('Data berhasil ditambahkan!');
+                $('#alumniForm')[0].reset();
+                loadAlumni();
+            }
+        });
     });
-
-    $('.modal .close').on('click',function(event){
-        if($(event.target).is('myModal')){
-            $('#myModal').fadeOut();
-        }
+    $(document).on('click', '.deleteBtn', function() {
+        const index = $(this).data('index');
+        $.ajax({
+            url: 'alumni.php',
+            type: 'DELETE',
+            data: { index: index },
+            success: function(response) {
+                alert('Data berhasil dihapus!');
+                loadAlumni();
+            }
+        });
     });
+    loadAlumni();
 });
